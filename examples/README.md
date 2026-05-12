@@ -1,1 +1,13 @@
-API 在 `http://localhost:8000` 时：仓库根执行 `.\examples\demo-rich.ps1` 或 `bash examples/demo-rich.sh`（需 `curl`、`jq`）。`RUN_ID` 写入根目录 `.demo-run-id`。
+## quickstart（最小接入）
+
+API 在 `http://localhost:8000` 时，仓库根执行其一：
+
+- `python examples/quickstart.py --wait`（仅标准库）
+- `powershell -File examples\quickstart.ps1 -Wait`
+- `bash examples/quickstart.sh --wait`（需本机 Python）
+
+环境变量：`BASE_URL`（默认 `http://localhost:8000`）、`AGENTOPS_UI_ORIGIN`（打印详情链接用，默认 `http://localhost:5173`）。
+
+## demo-rich（完整演示树）
+
+API 已就绪时：`.\examples\demo-rich.ps1` 或 `bash examples/demo-rich.sh`（需 `curl`、`jq`）。`RUN_ID` 写入仓库根 `.demo-run-id`。

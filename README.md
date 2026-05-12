@@ -1,20 +1,52 @@
 # AgentOps
 
-**简介**：通过 HTTP 上报 **Run**（一次执行）与 **Span**（步骤树），落库 Postgres；提供 **OpenAPI** 查询与 **Web UI**（运行列表、Span 树、时间线、只读弱回放）。P0 **无鉴权**，契约以运行中 **`/docs`** 为准。
+## 项目定位
 
-**当前功能**：`POST/GET /v1/runs`；`POST/GET /v1/runs/{id}/spans`（批量 `{spans:[]}`）；`GET /health`；Alembic 迁移；`docker-compose`（Postgres + API）；演示脚本 `examples/demo-rich.*`；GitHub Actions 跑后端 pytest + 前端测试/构建。
+**自托管、REST/OpenAPI**：HTTP 上报 **Run** / **Span** → Postgres → 查询 API + **Web UI**（列表、Span 树、时间线、弱回放）。取向是 **栈小、数据不外发、契约看 `/docs`**；P0 **无鉴权**。主要对准 **多步不可见**、**trace 不外发**、**HTTP 即可接**。
 
-**如何使用**：Windows 仓库根执行 `.\scripts\up.ps1`（起栈并灌演示），再 `cd frontend && npm install && npm run dev` 打开 http://localhost:5173。仅起后端：`docker compose up -d`；仅写演示：`.\examples\demo-rich.ps1`。详见下表与「测试」一节。
+## 体验目标（产品方向，迭代验收）
 
-**后续扩展（未在 P0）**：业务侧 `external_ref`；鉴权与多租户；分页与异步摄取队列；Token/latency/cost 聚合；LangChain 等适配层；强 Replay；OTel 导出；脱敏与保留策略；Eval 与 Run 关联。
+以下三条与内部规格对齐；**大能力须先在本 README「范围」中列出再实现**，避免静默扩 scope。
+
+1. **泛接入**：任意语言/框架或无框架，只要具备 **HTTP** 或本仓库已提供的 **官方薄 SDK（仅封装 `/v1`，无服务端框架依赖）** 即可上报；不将某一商业框架私有协议作为唯一接入方式。
+2. **极低接入**：个人开发者 **≤5 分钟** 从克隆到在 UI 看到自有进程的第一条 Run（基线：「5 分钟接入」+ `examples/quickstart.*`）；进一步目标为典型集成 **≤~15 行** 或 **单行 Client 初始化 + 环境变量**（以落地 SDK 文档为准）。「零代码」路径（包装器/网关/侧车等）若做须另开章节说明运维与安全边界。
+3. **直观与美化**：列表与详情 **层级清晰**；树与时间线联动；时间维至少实现 **相对 Run 起点的偏移或等比例时间条（甘特式）** 之一；全站 **统一视觉与弱回放 JSON 可读性**；`demo-rich` 场景下 **`npm run build`** 通过且布局不崩。
+
+**当前功能**：`POST/GET /v1/runs`，`POST/GET /v1/runs/{id}/spans`（`{spans:[]}`），`GET /health`，Alembic，`docker-compose`，`examples/demo-rich.*`，`examples/quickstart.*`，CI（后端 pytest + 前端测试/构建）。
+
+**如何使用**：仓库根 `.\scripts\up.ps1`（Windows，起栈并灌演示）→ `cd frontend && npm install && npm run dev` → http://localhost:5173。仅容器：`docker compose up -d`；仅灌数：`.\examples\demo-rich.ps1`。详见下表与「测试」。
 
 ## 范围 / 非目标
 
+### P0（当前已实现）
+
 | 在范围内（P0） | 不在范围内 |
 |----------------|------------|
-| HTTP 写入/查询 Run·Span；UUID 服务端生成；无鉴权 | 账号体系、多租户、强 Replay、框架内置 SDK 适配 |
-| `docker-compose`：Postgres + API；`examples/demo-rich.*` 演示 | 生产鉴权、队列异步摄取、自动脱敏 |
+| HTTP 写入/查询 Run·Span；UUID 服务端生成；无鉴权 | 账号体系、多租户、**生产级**鉴权 |
+| `docker-compose`：Postgres + API；`examples/demo-rich.*`、`examples/quickstart.*` | 异步队列摄取、自动脱敏 |
 | 契约以运行中 **`/docs`** 为准 | 本仓库不提交本地 `需求文档.md`（见 `.gitignore`） |
+
+### 体验目标迭代（本 README 已承诺，按 PR 陆续落地；未落地前以 OpenAPI 与代码为准）
+
+| 将纳入实现 | 仍默认不做（须另扩 README 再开发） |
+|------------|-------------------------------------|
+| 官方薄 **Python SDK**（仅 HTTP，不进入默认 API 镜像依赖） | OTel 导出、强 Replay |
+| **`external_ref`** 与按 ref 查询、Run 列表 **分页与基础过滤** | Eval 平台、复杂多租户 |
+| 详情：**相对时间 / 甘特条**（二选一或组合，以 PR 说明为准） | 「零代码」侧车/网关（未写清运维边界前不做） |
+| 前端：**视觉规范**与弱回放区可读性（折叠/对比度等） | 队列硬依赖、自动脱敏管线 |
+
+## 5 分钟接入（个人开发者）
+
+目标：**只依赖 Docker** 起 API，用脚本写入一条最小 Run + Span，把输出里的 JSON 形状嵌进你自己的 Agent 即可（不必先装 Node）。
+
+1. 仓库根：`docker compose up -d --build`，等到 `http://localhost:8000/health` 返回 200。
+2. 任选其一写入示例数据（`--wait` / `-Wait` 会轮询 `/health`，最多约 90s）：
+   - Python 3.11+：`python examples/quickstart.py --wait`
+   - PowerShell：`powershell -File examples\quickstart.ps1 -Wait`
+   - Bash：`bash examples/quickstart.sh --wait`（内部调用 `quickstart.py`，需本机有 `python3`/`python`）
+3. 看 Web UI（可选）：另开终端 `cd frontend && npm install && npm run dev`，打开命令行打印的 `http://localhost:5173/runs/...`。
+
+完整字段与枚举以运行中的 **`http://localhost:8000/docs`** 为准。Windows 一键起栈并灌**丰富**演示数据仍用 `.\scripts\up.ps1`（会跑 `demo-rich`）；**接自己的进程**时优先用本节的 `quickstart`。
 
 ## 快速开始
 
