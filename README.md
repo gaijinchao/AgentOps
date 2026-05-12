@@ -73,4 +73,12 @@ cd backend && pip install -e ".[dev]" && export DATABASE_URL=postgresql+asyncpg:
 cd frontend && npm install && npm test && npm run build
 ```
 
+## 仅须你亲自完成
+
+1. **Docker 路线**：在本机打开并运行 **Docker Desktop**，在仓库根执行 `docker compose up -d --build`。**API 容器每次启动都会执行 `alembic upgrade head`**（见 `backend/Dockerfile` 的 `CMD`），一般**不必**再手动给 `agentops` 库跑迁移。  
+2. **看 Web UI**：本机安装 **Node 20+** 且 `npm` 在 PATH 后：`cd frontend && npm install && npm run dev`，浏览器打开 http://localhost:5173。  
+3. （按需）把本地提交推到 GitHub：`git push origin main`（需已配置 SSH 或 HTTPS 凭据）。
+
+若你**不用 Docker**、而是本机直连 Postgres：自行设置 `DATABASE_URL` 后，对**该库**执行一次 `cd backend && alembic upgrade head`。
+
 CI：`.github/workflows/ci.yml`。贡献与许可：`CONTRIBUTING.md`、`LICENSE`。
