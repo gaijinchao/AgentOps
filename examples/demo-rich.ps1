@@ -1,18 +1,5 @@
 <#
-.SYNOPSIS
-  Seeds one story-like Run + multi-level Spans for UI walkthrough (tree / timeline / weak replay).
-
-  Run from repo root: .\examples\demo-rich.ps1
-  (Do not nest "powershell -File" inside an existing PS session.)
-
-  NOTE: This file is ASCII-only so Windows PowerShell 5.1 parses it correctly (UTF-8 without BOM
-  is misread as system ANSI and breaks strings with CJK characters).
-
-.PARAMETER BaseUrl
-  API base URL, default http://localhost:8000
-
-.PARAMETER RunIdOutFile
-  Write RUN_ID to this path; default: repo root .demo-run-id
+  Seed demo Run+Spans (ASCII-only for PS 5.1). Repo root: .\examples\demo-rich.ps1
 #>
 param(
     [string]$BaseUrl = "http://localhost:8000",
@@ -130,7 +117,4 @@ Invoke-RestMethod -Method Post -Uri "$BaseUrl/v1/runs/$runId/spans" -Body $layer
 
 Write-Utf8NoBom $outPath $runId
 
-Write-Host "`n== Done" -ForegroundColor Green
-Write-Host "OpenAPI: $BaseUrl/docs"
-Write-Host "RUN_ID=$runId (saved $outPath)"
-Write-Host "UI: http://localhost:5173 — read intro on home, then /runs/$runId"
+Write-Host "`nRUN_ID=$runId  ->  http://localhost:5173/runs/$runId"

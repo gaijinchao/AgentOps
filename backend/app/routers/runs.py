@@ -29,12 +29,7 @@ async def create_run(body: RunCreate, db: AsyncSession = Depends(get_db)) -> Run
     return run
 
 
-@router.get(
-    "/runs",
-    response_model=list[RunRead],
-    summary="List recent runs",
-    description="Returns up to RUN_LIST_LIMIT_DEFAULT runs (default 50), newest first by created_at.",
-)
+@router.get("/runs", response_model=list[RunRead], summary="List runs")
 async def list_runs(db: AsyncSession = Depends(get_db)) -> list[Run]:
     stmt = select(Run).order_by(Run.created_at.desc()).limit(settings.run_list_limit_default)
     result = await db.execute(stmt)

@@ -33,7 +33,7 @@ async def validation_exception_handler(_request, exc: RequestValidationError) ->
 app = FastAPI(
     title="AgentOps API",
     version="0.1.0",
-    description="HTTP ingest and query for Agent execution runs and spans.",
+    description="Run/Span ingest and query.",
     lifespan=lifespan,
 )
 

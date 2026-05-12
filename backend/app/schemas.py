@@ -47,7 +47,7 @@ class RunRead(BaseModel):
 
 class SpanCreateItem(BaseModel):
     parent_span_id: UUID | None = None
-    type: str = Field(..., max_length=64, examples=["llm", "tool", "workflow", "custom"])
+    type: str = Field(..., max_length=64)
     name: str = Field(..., max_length=512)
     status: SpanStatusEnum
     started_at: datetime | None = None
@@ -57,8 +57,6 @@ class SpanCreateItem(BaseModel):
 
 
 class SpanBatchCreate(BaseModel):
-    """Batch ingest: one request creates one or more spans for a run."""
-
     spans: list[SpanCreateItem] = Field(..., min_length=1)
 
 

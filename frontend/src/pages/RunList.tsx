@@ -39,7 +39,7 @@ export function RunList() {
     return (
       <div className="panel">
         <p>无法加载运行列表：{error}</p>
-        <p className="muted">请确认 API 在 8000 端口或设置 VITE_API_URL。见首页上方说明。</p>
+        <p className="muted">API 不可达（8000 或 VITE_API_URL）。</p>
       </div>
     );
   }
@@ -74,7 +74,7 @@ export function RunList() {
           ))}
         </tbody>
       </table>
-      {runs.length === 0 ? <p className="muted">暂无数据。按首页说明写入演示后刷新。</p> : null}
+      {runs.length === 0 ? <p className="muted">无数据。</p> : null}
     </div>
   );
 }
