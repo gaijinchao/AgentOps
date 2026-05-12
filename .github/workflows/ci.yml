@@ -5,8 +5,7 @@ on:
     branches: [main, master]
   pull_request:
 
-# GitHub Actions 弃用 runner 内嵌 Node 20 执行 JS action；显式使用 Node 24 运行 checkout/setup-* 等。
-# 参见: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+# JS-based actions: pin versions that run on Node 24; optional global opt-in (see GitHub changelog 2025-09-19).
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
@@ -31,7 +30,7 @@ jobs:
       DATABASE_URL: postgresql+asyncpg://postgres:postgres@127.0.0.1:5432/agentops_test
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
       - name: Install backend
@@ -47,7 +46,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: "22"
       - name: Install
