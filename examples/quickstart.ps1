@@ -35,6 +35,7 @@ $runBody = @{
     input_summary   = "quickstart (powershell)"
     output_summary  = "done"
     error_summary   = $null
+    external_ref    = "quickstart-demo"
 } | ConvertTo-Json
 
 $run = Invoke-RestMethod -Method Post -Uri "$base/v1/runs" -Body $runBody -ContentType "application/json; charset=utf-8"

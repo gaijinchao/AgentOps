@@ -12,7 +12,7 @@
 2. **极低接入**：个人开发者 **≤5 分钟** 从克隆到在 UI 看到自有进程的第一条 Run（基线：「5 分钟接入」+ `examples/quickstart.*`）；进一步目标为典型集成 **≤~15 行** 或 **单行 Client 初始化 + 环境变量**（以落地 SDK 文档为准）。「零代码」路径（包装器/网关/侧车等）若做须另开章节说明运维与安全边界。
 3. **直观与美化**：列表与详情 **层级清晰**；树与时间线联动；时间维至少实现 **相对 Run 起点的偏移或等比例时间条（甘特式）** 之一；全站 **统一视觉与弱回放 JSON 可读性**；`demo-rich` 场景下 **`npm run build`** 通过且布局不崩。
 
-**当前功能**：`POST/GET /v1/runs`，`POST/GET /v1/runs/{id}/spans`（`{spans:[]}`），`GET /health`，Alembic，`docker-compose`，`examples/demo-rich.*`，`examples/quickstart.*`，CI（后端 pytest + 前端测试/构建）。
+**当前功能**：`POST/GET /v1/runs`（列表支持 `limit`、`offset`、`status`、`external_ref`）；`POST/GET /v1/runs/{id}/spans`（`{spans:[]}`）；Run 可选 **`external_ref`**；`GET /health`；Alembic；`docker-compose`；`examples/demo-rich.*`、`examples/quickstart.*`；官方薄 Python SDK **`sdk/python`**；CI（后端 pytest + 前端测试/构建）。
 
 **如何使用**：仓库根 `.\scripts\up.ps1`（Windows，起栈并灌演示）→ `cd frontend && npm install && npm run dev` → http://localhost:5173。仅容器：`docker compose up -d`；仅灌数：`.\examples\demo-rich.ps1`。详见下表与「测试」。
 
@@ -22,18 +22,16 @@
 
 | 在范围内（P0） | 不在范围内 |
 |----------------|------------|
-| HTTP 写入/查询 Run·Span；UUID 服务端生成；无鉴权 | 账号体系、多租户、**生产级**鉴权 |
-| `docker-compose`：Postgres + API；`examples/demo-rich.*`、`examples/quickstart.*` | 异步队列摄取、自动脱敏 |
+| HTTP 写入/查询 Run·Span；`GET /v1/runs` 支持 `limit`/`offset`/`status`/`external_ref`；UUID 服务端生成；无鉴权 | 账号体系、多租户、**生产级**鉴权 |
+| `docker-compose`：Postgres + API；`examples/*`；**`sdk/python`** 薄 SDK | 异步队列摄取、自动脱敏 |
 | 契约以运行中 **`/docs`** 为准 | 本仓库不提交本地 `需求文档.md`（见 `.gitignore`） |
 
-### 体验目标迭代（本 README 已承诺，按 PR 陆续落地；未落地前以 OpenAPI 与代码为准）
+### 体验目标迭代（后续仍可增强；本 PR 已部分落地）
 
-| 将纳入实现 | 仍默认不做（须另扩 README 再开发） |
-|------------|-------------------------------------|
-| 官方薄 **Python SDK**（仅 HTTP，不进入默认 API 镜像依赖） | OTel 导出、强 Replay |
-| **`external_ref`** 与按 ref 查询、Run 列表 **分页与基础过滤** | Eval 平台、复杂多租户 |
-| 详情：**相对时间 / 甘特条**（二选一或组合，以 PR 说明为准） | 「零代码」侧车/网关（未写清运维边界前不做） |
-| 前端：**视觉规范**与弱回放区可读性（折叠/对比度等） | 队列硬依赖、自动脱敏管线 |
+| 已落地（持续打磨） | 仍默认不做（须另扩 README 再开发） |
+|--------------------|-------------------------------------|
+| `external_ref`、列表过滤与 `limit`/`offset`；详情 **甘特条 + 相对时间**；弱回放 **折叠 JSON**；`sdk/python` 薄客户端；全站 **色板/圆角/按钮与筛选条** | OTel 导出、强 Replay、Eval、多租户 |
+| 更深主题（暗色）、网关「零代码」侧车等 | 生产级鉴权、队列硬依赖、自动脱敏管线 |
 
 ## 5 分钟接入（个人开发者）
 
@@ -61,7 +59,11 @@
 
 ## 环境变量
 
-`DATABASE_URL` · `RUN_LIST_LIMIT_DEFAULT`（默认 50）· `CORS_ORIGINS`（默认 `http://localhost:5173`）
+`DATABASE_URL` · `RUN_LIST_LIMIT_DEFAULT`（默认 50）· `RUN_LIST_LIMIT_MAX`（默认 200，`GET /v1/runs` 的 `limit` 上限）· `CORS_ORIGINS`（默认 `http://localhost:5173`）
+
+## Python SDK（薄封装）
+
+仓库根：`pip install -e "./sdk/python"`。用法见 `sdk/python/README.md`（`Client.create_run` / `create_spans` / `list_runs`）。
 
 ## 测试
 

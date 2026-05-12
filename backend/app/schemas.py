@@ -30,6 +30,7 @@ class RunCreate(BaseModel):
     input_summary: str | None = None
     output_summary: str | None = None
     error_summary: str | None = None
+    external_ref: str | None = Field(default=None, max_length=512)
 
 
 class RunRead(BaseModel):
@@ -42,6 +43,7 @@ class RunRead(BaseModel):
     input_summary: str | None
     output_summary: str | None
     error_summary: str | None
+    external_ref: str | None
     created_at: datetime
 
 

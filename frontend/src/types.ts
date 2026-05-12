@@ -9,6 +9,7 @@ export interface Run {
   input_summary: string | null;
   output_summary: string | null;
   error_summary: string | null;
+  external_ref: string | null;
   created_at: string;
 }
 

@@ -22,6 +22,7 @@ async def test_create_run_and_list(client):
     assert "id" in data
     assert data["status"] == "running"
     assert data["input_summary"] == "hello"
+    assert data.get("external_ref") in (None, "")
 
     r2 = await client.get("/v1/runs")
     assert r2.status_code == 200
@@ -144,3 +145,39 @@ async def test_spans_null_started_at_sort_last(client):
     spans = r_list.json()
     assert spans[0]["name"] == "with_time"
     assert spans[1]["name"] == "no_time"
+
+
+@pytest.mark.asyncio
+async def test_create_run_external_ref_and_list_filters(client):
+    await client.post(
+        "/v1/runs",
+        json={"status": "pending", "external_ref": "job-a", "input_summary": "a"},
+    )
+    await client.post(
+        "/v1/runs",
+        json={"status": "running", "external_ref": "job-b", "input_summary": "b"},
+    )
+
+    r = await client.get("/v1/runs", params={"external_ref": "job-a"})
+    assert r.status_code == 200
+    xs = r.json()
+    assert len(xs) == 1
+    assert xs[0]["external_ref"] == "job-a"
+    assert xs[0]["status"] == "pending"
+
+    r2 = await client.get("/v1/runs", params={"status": "running"})
+    assert len(r2.json()) == 1
+    assert r2.json()[0]["external_ref"] == "job-b"
+
+
+@pytest.mark.asyncio
+async def test_list_runs_pagination(client):
+    for i in range(5):
+        await client.post("/v1/runs", json={"status": "succeeded", "input_summary": str(i)})
+    r = await client.get("/v1/runs", params={"limit": 2, "offset": 0})
+    assert len(r.json()) == 2
+    r2 = await client.get("/v1/runs", params={"limit": 2, "offset": 2})
+    assert len(r2.json()) == 2
+    first_page_ids = {x["id"] for x in r.json()}
+    second_page_ids = {x["id"] for x in r2.json()}
+    assert first_page_ids.isdisjoint(second_page_ids)

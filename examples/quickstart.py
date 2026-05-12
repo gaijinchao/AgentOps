@@ -80,6 +80,7 @@ def main() -> int:
             "input_summary": "quickstart (python)",
             "output_summary": "done",
             "error_summary": None,
+            "external_ref": "quickstart-demo",
         },
     )
     run_id = run["id"]

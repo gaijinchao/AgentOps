@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy import nulls_last, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -8,7 +8,7 @@ from app.config import settings
 from app.database import get_db
 from app.exceptions import AppError
 from app.models import Run, RunStatus, Span, SpanStatus
-from app.schemas import RunCreate, RunRead, SpanBatchCreate, SpanRead
+from app.schemas import RunCreate, RunRead, RunStatusEnum, SpanBatchCreate, SpanRead
 
 router = APIRouter(prefix="/v1", tags=["runs"])
 
@@ -22,6 +22,7 @@ async def create_run(body: RunCreate, db: AsyncSession = Depends(get_db)) -> Run
         input_summary=body.input_summary,
         output_summary=body.output_summary,
         error_summary=body.error_summary,
+        external_ref=body.external_ref,
     )
     db.add(run)
     await db.commit()
@@ -30,8 +31,20 @@ async def create_run(body: RunCreate, db: AsyncSession = Depends(get_db)) -> Run
 
 
 @router.get("/runs", response_model=list[RunRead], summary="List runs")
-async def list_runs(db: AsyncSession = Depends(get_db)) -> list[Run]:
-    stmt = select(Run).order_by(Run.created_at.desc()).limit(settings.run_list_limit_default)
+async def list_runs(
+    db: AsyncSession = Depends(get_db),
+    limit: int | None = Query(default=None, ge=1, le=settings.run_list_limit_max),
+    offset: int = Query(default=0, ge=0),
+    status: RunStatusEnum | None = Query(default=None),
+    external_ref: str | None = Query(default=None, max_length=512),
+) -> list[Run]:
+    eff_limit = limit if limit is not None else settings.run_list_limit_default
+    eff_limit = min(eff_limit, settings.run_list_limit_max)
+    stmt = select(Run).order_by(Run.created_at.desc()).offset(offset).limit(eff_limit)
+    if status is not None:
+        stmt = stmt.where(Run.status == RunStatus(status.value))
+    if external_ref:
+        stmt = stmt.where(Run.external_ref == external_ref)
     result = await db.execute(stmt)
     return list(result.scalars().all())
 

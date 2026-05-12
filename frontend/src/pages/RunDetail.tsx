@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { fetchRun, fetchSpans } from "../api";
+import { SpanGantt } from "../components/SpanGantt";
 import { SpanTimeline } from "../components/SpanTimeline";
 import { SpanTree } from "../components/SpanTree";
 import { runStatusLabel, spanStatusLabel } from "../labels";
@@ -68,6 +69,10 @@ export function RunDetail() {
           {runStatusLabel(run.status)}
         </p>
         <p>
+          <strong>external_ref：</strong>
+          {run.external_ref ?? "—"}
+        </p>
+        <p>
           <strong>开始 / 结束：</strong>
           {run.started_at ?? "—"} → {run.ended_at ?? "—"}
         </p>
@@ -100,25 +105,31 @@ export function RunDetail() {
       </div>
 
       <div className="panel">
+        <h3 style={{ marginTop: 0 }}>时间占比（相对 Run）</h3>
+        <p className="muted">基于 Run 与各 Span 的 started_at / ended_at 估算；无时间戳时可能较粗。</p>
+        <SpanGantt run={run} spans={spans} selectedId={selectedId} onSelect={setSelectedId} />
+      </div>
+
+      <div className="panel">
         <h3 style={{ marginTop: 0 }}>弱回放（只读）</h3>
         {!selected ? (
-          <p className="muted">请在左侧 Span 树或时间线中选择一个节点。</p>
+          <p className="muted">请在 Span 树、时间线或甘特条中选择一个节点。</p>
         ) : (
-          <div className="mono">
+          <div className="mono replay">
             <p>
               <strong>{selected.name}</strong>（{selected.type}）— {spanStatusLabel(selected.status)}
             </p>
             <p>开始时间（started_at）：{selected.started_at ?? "无"}</p>
             <p>结束时间（ended_at）：{selected.ended_at ?? "无"}</p>
             {selected.error_message ? (
-              <p>
+              <p className="replay-error">
                 错误信息（error_message）：{selected.error_message}
               </p>
             ) : null}
-            <p>属性（attributes）：</p>
-            <pre style={{ margin: 0 }}>
-              {JSON.stringify(selected.attributes ?? {}, null, 2)}
-            </pre>
+            <details className="json-details" open>
+              <summary>属性（attributes）</summary>
+              <pre className="json-pre">{JSON.stringify(selected.attributes ?? {}, null, 2)}</pre>
+            </details>
           </div>
         )}
       </div>
