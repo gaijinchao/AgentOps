@@ -1,0 +1,31 @@
+# Local requirements doc — not for public mirror (see CONTRIBUTING / README)
+需求文档.md
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+dist/
+build/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+.env
+.env.*
+
+# Node
+node_modules/
+frontend/dist/
+npm-debug.log*
+
+# Local demo run id (examples/demo-rich.ps1 or scripts/up.ps1)
+.demo-run-id
+
+# IDE / OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

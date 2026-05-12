@@ -1,0 +1,36 @@
+[project]
+name = "agentops-backend"
+version = "0.1.0"
+description = "AgentOps FastAPI ingest and query API"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.115.0,<1",
+    "uvicorn[standard]>=0.32.0,<1",
+    "sqlalchemy[asyncio]>=2.0.36,<3",
+    "asyncpg>=0.30.0,<1",
+    "alembic>=1.14.0,<2",
+    "pydantic>=2.10.0,<3",
+    "pydantic-settings>=2.6.0,<3",
+    "psycopg[binary]>=3.2.0,<4",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3.0,<9",
+    "pytest-asyncio>=0.24.0,<1",
+    "httpx>=0.28.0,<1",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["app*"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]
