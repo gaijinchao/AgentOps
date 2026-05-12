@@ -40,11 +40,12 @@ async def list_runs(
 ) -> list[Run]:
     eff_limit = limit if limit is not None else settings.run_list_limit_default
     eff_limit = min(eff_limit, settings.run_list_limit_max)
-    stmt = select(Run).order_by(Run.created_at.desc()).offset(offset).limit(eff_limit)
+    stmt = select(Run)
     if status is not None:
         stmt = stmt.where(Run.status == RunStatus(status.value))
     if external_ref:
         stmt = stmt.where(Run.external_ref == external_ref)
+    stmt = stmt.order_by(Run.created_at.desc(), Run.id.desc()).offset(offset).limit(eff_limit)
     result = await db.execute(stmt)
     return list(result.scalars().all())
 
