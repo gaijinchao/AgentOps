@@ -96,17 +96,15 @@ async def create_spans(run_id: UUID, body: SpanBatchCreate, db: AsyncSession = D
         )
         new_spans.append(span)
 
-    db.add_all(new_spans)
-    await db.flush()
-
     batch_ids = {s.id for s in new_spans}
     all_ids = existing_ids | batch_ids
-
     for span in new_spans:
         pid = span.parent_span_id
         if pid is not None and pid not in all_ids:
-            await db.rollback()
             raise AppError("validation_error", f"parent_span_id {pid} not found for this run", 400)
+
+    db.add_all(new_spans)
+    await db.flush()
 
     await db.commit()
     for s in new_spans:
