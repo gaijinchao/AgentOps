@@ -1,6 +1,12 @@
 # AgentOps
 
-FastAPI + Postgres（ingest/query）+ Vite/React（列表、Span 树、时间线、只读弱回放）。
+**简介**：通过 HTTP 上报 **Run**（一次执行）与 **Span**（步骤树），落库 Postgres；提供 **OpenAPI** 查询与 **Web UI**（运行列表、Span 树、时间线、只读弱回放）。P0 **无鉴权**，契约以运行中 **`/docs`** 为准。
+
+**当前功能**：`POST/GET /v1/runs`；`POST/GET /v1/runs/{id}/spans`（批量 `{spans:[]}`）；`GET /health`；Alembic 迁移；`docker-compose`（Postgres + API）；演示脚本 `examples/demo-rich.*`；GitHub Actions 跑后端 pytest + 前端测试/构建。
+
+**如何使用**：Windows 仓库根执行 `.\scripts\up.ps1`（起栈并灌演示），再 `cd frontend && npm install && npm run dev` 打开 http://localhost:5173。仅起后端：`docker compose up -d`；仅写演示：`.\examples\demo-rich.ps1`。详见下表与「测试」一节。
+
+**后续扩展（未在 P0）**：业务侧 `external_ref`；鉴权与多租户；分页与异步摄取队列；Token/latency/cost 聚合；LangChain 等适配层；强 Replay；OTel 导出；脱敏与保留策略；Eval 与 Run 关联。
 
 ## 范围 / 非目标
 
