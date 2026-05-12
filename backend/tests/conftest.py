@@ -16,11 +16,14 @@ from app.main import app  # noqa: E402
 
 @pytest_asyncio.fixture(autouse=True)
 async def wipe_db() -> AsyncIterator[None]:
+    # function-scoped event loop + global engine pool: dispose so new connections bind to this loop.
+    await engine.dispose()
     async with engine.begin() as conn:
         await conn.execute(text("TRUNCATE TABLE runs CASCADE"))
     yield
     async with engine.begin() as conn:
         await conn.execute(text("TRUNCATE TABLE runs CASCADE"))
+    await engine.dispose()
 
 
 @pytest_asyncio.fixture
